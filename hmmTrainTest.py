@@ -124,7 +124,6 @@ class VideoRecognizer:
         """
         mat_contents = sio.loadmat('data/original_masks.mat')
         mat_contents = mat_contents['original_masks']
-        counter = 0
         for category_name in self.categories:
             """Each  category"""
             images = []
@@ -168,7 +167,6 @@ class VideoRecognizer:
                     self.model[category_name]['std_scale1'].append(std_scale1)
                     self.model[category_name]['data'].append(images[test])
             self.target_names = self.categories
-            counter += 1
 
     def train(self, images):
         """
@@ -188,10 +186,10 @@ class VideoRecognizer:
         elif self.args.preprocess_method == "FastICA":
             std_scale1 = preprocessing.StandardScaler()
             std_scale = FastICA(n_components=self.args.decomposition_component, random_state=55)
-        elif self.args.preprocess_method == "Normalizer":
-            std_scale = preprocessing.Normalizer()
-        else:
+        elif self.args.preprocess_method == "StandardScaler":
             std_scale = preprocessing.StandardScaler()
+        else:
+            std_scale = preprocessing.Normalizer()
         if std_scale1 is not None:
             std_scale1.fit(scaled_images)
             scaled_images = std_scale1.transform(scaled_images)
@@ -247,17 +245,17 @@ class VideoRecognizer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--feature-type', type=str, dest='feature_type', default='Hu', help='Feature type. * "7 Hu" *"Projection" (default: %(default)s)')
+    parser.add_argument('-f', '--feature-type', type=str, dest='feature_type', default='Hu', help='Feature type. * "Hu" *"Projection" (default: %(default)s)')
     parser.add_argument('-g', '--gmm-state-number', type=int, dest='gmm_state_number', default=1, help='Number of states in the GMM. (default: %(default)s)')
-    parser.add_argument('-s', '--state-number', type=int, dest='state_number', default=4, help='Number of states in the model. (default: %(default)s)')
-    parser.add_argument('-p', '--preprocess-method', type=str, dest='preprocess_method', default='Normalizer',
+    parser.add_argument('-s', '--state-number', type=int, dest='state_number', default=7, help='Number of states in the model. (default: %(default)s)')
+    parser.add_argument('-p', '--preprocess-method', type=str, dest='preprocess_method', default='FastICA',
                         help='Data preprocess method.* "PCA" *"StandardScaler" *"FastICA" *"Normalizer" (default: %(default)s)')
     parser.add_argument('-dc', '--decomposition-component', type=int, dest='decomposition_component', default=7,
                         help='Principal axes in feature space, representing the directions of maximum variance in the data. '
                              'The components are sorted by ``explained_variance_``. (default: %(default)s)')
-    parser.add_argument('-r', '--resize', type=float, dest='resize', default=1, help='Frame resize ratio. (default: %(default)s)')
-    parser.add_argument('-w', '--window', type=int, dest='window', default=15, help='Frame window size. (default: %(default)s)')
-    parser.add_argument('-l2r', '--left-2-right', type=bool, dest='left2Right', default=True, help='Left to right HMM model. (default: %(default)s)')
+    parser.add_argument('-r', '--resize', type=float, dest='resize', default=1, help='Frame resize ratio [0 - 1]. (default: %(default)s)')
+    parser.add_argument('-w', '--window', type=int, dest='window', default=30, help='Frame window size. (default: %(default)s)')
+    parser.add_argument('-l2r', '--left-2-right', type=bool, dest='left2Right', default=False, help='Left to right HMM model. (default: %(default)s)')
     parser.add_argument('-mhi', '--mhi', type=bool, dest='mhi', default=True, help='Do use MHI Feature extraction? (default: %(default)s)')
 
     args = parser.parse_args()
