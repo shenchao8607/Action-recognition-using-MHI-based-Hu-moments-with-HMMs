@@ -126,9 +126,12 @@ class VideoRecognizer:
         mat_contents = mat_contents['original_masks']
         counter = 0
         for category_name in self.categories:
+            """Each  category"""
             images = []
             for person in self.persons:
+                """Each person"""
                 if person == 'lena_' and (category_name == 'run' or category_name == 'skip' or category_name == 'walk'):
+                    """Person is Lena and category run, skip or walk"""
                     video = mat_contents[person + category_name + '1'][0][0]
                     if self.args.mhi:
                         data = self.extractMhiFeature(video)
@@ -151,6 +154,7 @@ class VideoRecognizer:
             if images.__len__() != 0:
                 loo = LeaveOneOut(images.__len__())
                 images = np.array(images)
+                """train hmm with category all video"""
                 self.fullDataTrainHmm[category_name], std_scale, std_scale1 = self.train(images)
                 self.model[category_name] = {}
                 self.model[category_name]['hmm'] = []
@@ -212,24 +216,29 @@ class VideoRecognizer:
         """
         HMM test and plot confision matrix.
         """
-        for key in self.model.keys():
-            for loo_index, data1 in enumerate(self.model[key]['data']):
+        for category in self.categories:
+            """Each category"""
+            for loo_index, data1 in enumerate(self.model[category]['data']):
+                """Each video"""
                 for data in data1:
-                    if self.model[key]['std_scale1'][loo_index] is not None:
-                        data = self.model[key]['std_scale1'][loo_index].transform(data)
-                    data = self.model[key]['std_scale'][loo_index].transform(data)
+                    """Each leave one out test set"""
+                    if self.model[category]['std_scale1'][loo_index] is not None:
+                        data = self.model[category]['std_scale1'][loo_index].transform(data)
+                    data = self.model[category]['std_scale'][loo_index].transform(data)
                     for index in range(data.__len__() - self.args.window):
+                        """Each subvideo"""
                         image = data[index: index + self.args.window]
-                        max = self.model[key]['hmm'][loo_index].score(image)
-                        label = key
-                        for key1 in self.fullDataTrainHmm.keys():
-                            if key1 != key:
-                                score = self.fullDataTrainHmm[key1].score(image)
+                        max = self.model[category]['hmm'][loo_index].score(image)
+                        predictedCategory = category
+                        for testedCategory in self.categories:
+                            """find maximum"""
+                            if testedCategory != category:
+                                score = self.fullDataTrainHmm[testedCategory].score(image)
                                 if score > max:
                                     max = score
-                                    label = key1
-                        self.expected.append(key)
-                        self.predicted.append(label)
+                                    predictedCategory = testedCategory
+                        self.expected.append(category)
+                        self.predicted.append(predictedCategory)
         print("Classification report for classifier \n%s\n" % (metrics.classification_report(self.expected, self.predicted)))
         cm = metrics.confusion_matrix(self.expected, self.predicted)
         print("Confusion matrix:\n%s" % cm)
@@ -247,7 +256,7 @@ if __name__ == "__main__":
                         help='Principal axes in feature space, representing the directions of maximum variance in the data. '
                              'The components are sorted by ``explained_variance_``. (default: %(default)s)')
     parser.add_argument('-r', '--resize', type=float, dest='resize', default=1, help='Frame resize ratio. (default: %(default)s)')
-    parser.add_argument('-w', '--window', type=int, dest='window', default=1, help='Frame window size. (default: %(default)s)')
+    parser.add_argument('-w', '--window', type=int, dest='window', default=15, help='Frame window size. (default: %(default)s)')
     parser.add_argument('-l2r', '--left-2-right', type=bool, dest='left2Right', default=True, help='Left to right HMM model. (default: %(default)s)')
     parser.add_argument('-mhi', '--mhi', type=bool, dest='mhi', default=True, help='Do use MHI Feature extraction? (default: %(default)s)')
 
