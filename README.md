@@ -6,7 +6,7 @@ Action video recognition with HMM. In this model training and testing used HMM (
 
 Model train and test with Weizmann dataset.
 
-*[Weizmann](http://www.wisdom.weizmann.ac.il/~vision/SpaceTimeActions.html)
+[Weizmann](http://www.wisdom.weizmann.ac.il/~vision/SpaceTimeActions.html)
 
 ## Pre-request libraries
 * Python3
