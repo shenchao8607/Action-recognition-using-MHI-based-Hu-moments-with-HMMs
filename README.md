@@ -28,7 +28,8 @@ Run the HMM train and test model.
  Run the default options with.
  
  `python hmmTrainTest.py`
-##Options
+ 
+## Options
 ```
   optional arguments:
    -h, --help            show this help message and exit
